@@ -1,0 +1,125 @@
+SOLUCION NUMERICA DEL SISTEMA DE ECUACIONES DIFERENCIALES
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parámetros del sistema
+m1 = 1.0  # masa 1 (kg)
+m2 = 1.0  # masa 2 (kg)
+l1 = 1.0  # longitud del péndulo 1 (m)
+l2 = 1.0  # longitud del péndulo 2 (m)
+g = 9.81  # aceleración debido a la gravedad (m/s^2)
+k = 1.0   # constante de acoplamiento (N/m)
+dix = 0.5  # distancia en x entre las dos masas (m)
+
+# Condiciones iniciales (en grados)
+theta1_0 = 10  # ángulo inicial de theta1 (grados)
+theta2_0 = 15  # ángulo inicial de theta2 (grados)
+omega1_0 = 0.0  # velocidad angular inicial de theta1 (rad/s)
+omega2_0 = 0.0  # velocidad angular inicial de theta2 (rad/s)
+
+# Convertir condiciones iniciales de grados a radianes
+theta1_0_rad = np.deg2rad(theta1_0)
+theta2_0_rad = np.deg2rad(theta2_0)
+
+# Intervalo de tiempo
+t0 = 0.0  # tiempo inicial
+tf = 100.0  # tiempo final (ajustado para evitar acumulación de errores numéricos)
+dt = 0.001  # paso de tiempo
+
+# Número de pasos
+n_steps = int((tf - t0) / dt) + 1
+
+# Funciones del sistema de ecuaciones
+def dtheta1_dt(omega1):
+    return omega1
+
+def dtheta2_dt(omega2):
+    return omega2
+
+def domega1_dt(theta1, theta2):
+    term1 = -(g * np.sin(theta1)) / l1
+    term2 = k * (dix * np.cos(theta1) + l2 * np.sin(theta1 - theta2)) / (m1 * l1)
+    return term1 + term2
+
+def domega2_dt(theta1, theta2):
+    term1 = -(g * np.sin(theta2)) / l2
+    term2 = -k * (dix * np.cos(theta2) + l1 * np.sin(theta1 - theta2)) / (m2 * l2)
+    return term1 + term2
+
+# Arrays para almacenar soluciones
+t = np.linspace(t0, tf, n_steps)
+theta1 = np.zeros(n_steps)
+theta2 = np.zeros(n_steps)
+omega1 = np.zeros(n_steps)
+omega2 = np.zeros(n_steps)
+
+# Condiciones iniciales
+theta1[0] = theta1_0_rad
+theta2[0] = theta2_0_rad
+omega1[0] = omega1_0
+omega2[0] = omega2_0
+
+# Implementación del método de Runge-Kutta de cuarto orden
+for i in range(1, n_steps):
+    # Valores actuales
+    theta1_i = theta1[i-1]
+    theta2_i = theta2[i-1]
+    omega1_i = omega1[i-1]
+    omega2_i = omega2[i-1]
+
+    # Cálculo de los coeficientes de Runge-Kutta
+    k1_theta1 = dt * dtheta1_dt(omega1_i)
+    k1_theta2 = dt * dtheta2_dt(omega2_i)
+    k1_omega1 = dt * domega1_dt(theta1_i, theta2_i)
+    k1_omega2 = dt * domega2_dt(theta1_i, theta2_i)
+
+    k2_theta1 = dt * dtheta1_dt(omega1_i + 0.5 * k1_omega1)
+    k2_theta2 = dt * dtheta2_dt(omega2_i + 0.5 * k1_omega2)
+    k2_omega1 = dt * domega1_dt(theta1_i + 0.5 * k1_theta1, theta2_i + 0.5 * k1_theta2)
+    k2_omega2 = dt * domega2_dt(theta1_i + 0.5 * k1_theta1, theta2_i + 0.5 * k1_theta2)
+
+    k3_theta1 = dt * dtheta1_dt(omega1_i + 0.5 * k2_omega1)
+    k3_theta2 = dt * dtheta2_dt(omega2_i + 0.5 * k2_omega2)
+    k3_omega1 = dt * domega1_dt(theta1_i + 0.5 * k2_theta1, theta2_i + 0.5 * k2_theta2)
+    k3_omega2 = dt * domega2_dt(theta1_i + 0.5 * k2_theta1, theta2_i + 0.5 * k2_theta2)
+
+    k4_theta1 = dt * dtheta1_dt(omega1_i + k3_omega1)
+    k4_theta2 = dt * dtheta2_dt(omega2_i + k3_omega2)
+    k4_omega1 = dt * domega1_dt(theta1_i + k3_theta1, theta2_i + k3_theta2)
+    k4_omega2 = dt * domega2_dt(theta1_i + k3_theta1, theta2_i + k3_theta2)
+
+    # Actualizar valores de theta y omega
+    theta1[i] = theta1_i + (k1_theta1 + 2*k2_theta1 + 2*k3_theta1 + k4_theta1) / 6
+    omega1[i] = omega1_i + (k1_omega1 + 2*k2_omega1 + 2*k3_omega1 + k4_omega1) / 6
+    theta2[i] = theta2_i + (k1_theta2 + 2*k2_theta2 + 2*k3_theta2 + k4_theta2) / 6
+    omega2[i] = omega2_i + (k1_omega2 + 2*k2_omega2 + 2*k3_omega2 + k4_omega2) / 6
+
+# Convertir los ángulos de radianes a grados para graficar
+theta1 = np.rad2deg(theta1)
+theta2 = np.rad2deg(theta2)
+
+# Graficar los resultados en gráficos separados
+plt.figure(figsize=(12, 8))
+
+plt.subplot(2, 1, 1)
+plt.plot(t, theta1, label=r'$\theta_1(t)$', color='b')
+plt.xlabel('Tiempo [s]')
+plt.ylabel(r'Ángulo $\theta_1$ [grados]')
+plt.title(r'$\theta_1(t)$ vs Tiempo')
+plt.grid(True)
+
+plt.subplot(2, 1, 2)
+plt.plot(t, theta2, label=r'$\theta_2(t)$', color='r')
+plt.xlabel('Tiempo [s]')
+plt.ylabel(r'Ángulo $\theta_2$ [grados]')
+plt.title(r'$\theta_2(t)$ vs Tiempo')
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
+
+
+plt.tight_layout()
+plt.show()
