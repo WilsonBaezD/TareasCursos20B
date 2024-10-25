@@ -1,0 +1,38 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constantes
+k = 1.0  # Constante de Coulomb (ajusta según sea necesario)
+E = 1.0  # Energía cinética de la partícula incidente (ajusta según sea necesario)
+
+# Definir la función de la sección transversal diferencial
+def seccion_transversal_diferencial(theta, alpha):
+    theta_rad = np.radians(theta)  # Convertir el ángulo a radianes
+    sin_theta_2 = np.sin(theta_rad / 2)  # Calcular sin(theta/2)
+    # Fórmula para la sección transversal diferencial con apantallamiento
+    sigma = (k / (4 * E))**2 * np.exp(-2 * alpha) / sin_theta_2**4
+    return sigma
+
+# Valores de theta (ángulo de dispersión) en grados
+theta_vals = np.linspace(0.1, 180, 500)
+
+# Valores de alpha (parámetro de apantallamiento) para estudiar
+alpha_vals = [-4.0, -3.0, -2.0, 1.0, 2.0, 3.0, 4.0]
+
+# Graficar la sección transversal diferencial para diferentes valores de alpha en un único gráfico
+plt.figure(figsize=(10, 6))
+
+for alpha in alpha_vals:
+    sigma_vals = seccion_transversal_diferencial(theta_vals, alpha)
+    plt.plot(theta_vals, sigma_vals, label=f'alpha = {alpha}')
+
+# Configuración del gráfico
+plt.yscale('log')  # Usamos escala logarítmica en el eje y para visualizar mejor los valores
+plt.xlabel('Ángulo de dispersión θ (grados)')
+plt.ylabel('Sección transversal diferencial dσ/dΩ')
+plt.title('Sección transversal diferencial vs Ángulo de dispersión para diferentes valores de alpha')
+plt.legend()
+plt.grid(True)
+
+# Mostrar el gráfico
+plt.show()
