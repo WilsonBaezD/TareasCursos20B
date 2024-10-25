@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Definir la función cot^{-1} (arcocotangente) en Python
+def arccot(x):
+    return np.pi / 2 - np.arctan(x)
+
+# Función para calcular el ángulo de dispersión
+def scattering_angle(b, E, alpha, r):
+    K = 1  # Constante del potencial
+    term = (2 * b * E) / (K * np.exp(-alpha * r))
+    return 2 * arccot(term)
+
+# Parámetros para iterar
+E_values = np.linspace(1, 10, 100)  # Energía en el rango de 1 a 10 unidades
+b_values = [0.5, 1.0, 1.5]  # Valores del parámetro de impacto
+alpha_values = [0.0, 0.5, 1.0, 1.5]  # Valores del parámetro de apantallamiento
+r = 1  # Valor fijo de r para simplificar el análisis
+
+# Graficar el ángulo de dispersión para diferentes valores de b y alpha
+plt.figure(figsize=(10, 6))
+
+for b in b_values:
+    for alpha in alpha_values:
+        theta_values = []
+        for E in E_values:
+            theta = scattering_angle(b, E, alpha, r)
+            theta_values.append(theta if theta >= 0 else 0)  # Evitar ángulos negativos
+        plt.plot(E_values, theta_values, label=f'b = {b}, alpha = {alpha}')
+
+plt.xlabel('Energía (E)')
+plt.ylabel('Ángulo de dispersión (θ)')
+plt.title('Ángulo de dispersión vs Energía para diferentes valores de b y alpha')
+plt.legend()
+plt.grid(True)
+plt.show()
